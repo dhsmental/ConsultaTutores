@@ -163,8 +163,6 @@
         const resp = await fetch(`${URL_SCRIPT}?email=${encodeURIComponent(email)}`);
         const data = await resp.json();
 
-        // Suporta tanto o retorno direto { encontrado, nome, grupo, trilhas }
-        // quanto o retorno { tutores: [...] } caso o script não filtre por ?email
         let tutorEncontrado = null;
 
         if (data && data.encontrado) {
@@ -253,6 +251,7 @@
       try {
         const resp = await fetch(URL_SCRIPT, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ email, mensagem })
         });
         const data = await resp.json();
@@ -263,12 +262,12 @@
           statusMsg.textContent = 'Mensagem salva';
         } else {
           statusMsg.style.color = '#b00020';
-          statusMsg.textContent = 'Não foi possível salvar a mensagem.';
+          statusMsg.textContent = `Não foi possível salvar (${data.motivo || 'falha_desconhecida'}).`;
         }
       } catch (err) {
         console.error(err);
         statusMsg.style.color = '#b00020';
-        statusMsg.textContent = 'Erro de conexão ao salvar.';
+        statusMsg.textContent = 'Erro de conexão ao salvar. Verifique a implantação do Apps Script.';
       }
     }
 
