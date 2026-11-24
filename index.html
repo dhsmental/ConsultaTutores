@@ -145,6 +145,29 @@
   <script>
     const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbz2-VBxIK8DTS1SbuRjyAstLjiEU78hKujSVbtTcKclz0gTim-5fjQ84o5U8tcQ0YgRZQ/exec';
 
+    function formatarValorResposta(resposta, pergunta = '') {
+      const textoOriginal = String(resposta ?? '').trim();
+      if (!textoOriginal) return '';
+
+      const ehPerguntaPorcentagem = /porcentagem|percentual|%/i.test(pergunta);
+      if (!ehPerguntaPorcentagem) return textoOriginal;
+
+      if (textoOriginal.endsWith('%')) {
+        return textoOriginal.replace(/\s+/g, '');
+      }
+
+      const normalizado = textoOriginal.replace(',', '.');
+      const numero = Number(normalizado);
+
+      if (!Number.isNaN(numero)) {
+        const percentual = numero >= 0 && numero <= 1 ? numero * 100 : numero;
+        const arredondado = Math.round(percentual * 100) / 100;
+        return `${arredondado}%`;
+      }
+
+      return textoOriginal;
+    }
+
     async function buscarEmail() {
       const email = document.getElementById('emailInput').value.trim();
       const aviso = document.getElementById('aviso');
@@ -211,12 +234,15 @@
             `;
           }
 
-          const perguntasHtml = itens.map((q, i) => `
-            <div class="pergunta-bloco">
-              <div class="pergunta-texto">${i + 1}. ${escaparHtml(q.pergunta)}</div>
-              <div class="resposta-texto">${escaparHtml(q.resposta).replace(/\n/g, '<br>')}</div>
-            </div>
-          `).join('');
+          const perguntasHtml = itens.map((q, i) => {
+            const valorFormatado = formatarValorResposta(q.resposta, q.pergunta);
+            return `
+              <div class="pergunta-bloco">
+                <div class="pergunta-texto">${i + 1}. ${escaparHtml(q.pergunta)}</div>
+                <div class="resposta-texto">${escaparHtml(valorFormatado).replace(/\n/g, '<br>')}</div>
+              </div>
+            `;
+          }).join('');
 
           return `
             <div class="trilha-item">
